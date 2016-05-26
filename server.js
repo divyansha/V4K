@@ -5,32 +5,27 @@ var app = express();
 var path = require('path');
 var mongoose = require('mongoose');
 var dbConfig = require('./db.js');
+mongoose.connect(dbConfig.url);
+
+/*var mongoose = require('mongoose');
+
+var mongoURI = "mongodb://127.0.0.1:27017/test";
+var MongoDB = mongoose.connect(mongoURI);
+MongoDB.on('error', function(err) { console.log(err.message); });
+MongoDB.once('open', function() {
+  console.log("mongodb connection open");
+});*/
+
+
 
 var LocalStrategy = require('passport-local').Strategy;
 
 //var db = mongoose.connection;
 
-var expressSession = require('express-session');
-app.use(expressSession({secret: 'mySecretKey'}));
+//var expressSession = require('express-session');
+//app.use(expressSession({secret: 'mySecretKey'}));
 app.use(passport.initialize());
 app.use(passport.session());
-
-
-
-passport.use(new LocalStrategy(
-  function(username, password, done) {
-    User.findOne({ username: username }, function(err, user) {
-      if (err) { return done(err); }
-      if (!user) {
-        return done(null, false, { message: 'Incorrect username.' });
-      }
-      if (!user.validPassword(password)) {
-        return done(null, false, { message: 'Incorrect password.' });
-      }
-      return done(null, user);
-    });
-  }
-));
 
 
 app.use(express.static(path.join(__dirname, 'public'))); //will help serve static files as middleware
@@ -54,11 +49,13 @@ app.get('/subjects.html',function(req,res){
 
 
 passport.serializeUser(function(user, done) {
-  done(null, user);
+  done(null, user.id);
 });
 
-passport.deserializeUser(function(user, done) {
-  done(null, user);
+passport.deserializeUser(function(id, done) {
+  User.findById(id, function(err, user) {
+    done(err, user);
+  });
 });
 
 /*db.on('error', console.error);
@@ -66,7 +63,7 @@ db.once('open', function() {
   // Create your schemas and models here.
 });*/
 
-mongoose.connect(dbConfig.url);
+//mongoose.connect(dbConfig.url);
 //mongoose.connect('mongodb://localhost/MyDatabase');
 
 
@@ -75,9 +72,6 @@ app.post('/login',
     failureRedirect: '/login',
     failureFlash: true })
 );
-
-
-
 
 
 app.listen(3000,function(){
