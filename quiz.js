@@ -61,3 +61,15 @@ quiz.factory('quizFactory', function() {
 		}
 	};
 });
+
+
+scope.getQuestion = function() {
+	var q = quizFactory.getQuestion(scope.id);
+	if(q) {
+		scope.question = q.question;
+		scope.options = q.options;
+		scope.answer = q.answer;
+	} else {
+		scope.quizOver = true;
+	}
+};
